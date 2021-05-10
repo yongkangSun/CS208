@@ -1,0 +1,78 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <map>
+using namespace std;
+
+struct Node {
+    Node * root;
+    long long size;
+};
+
+Node* find_root(Node* x)
+{
+    return x == x->root ? x : x->root = find_root(x->root);
+}
+
+void union_set(Node* x, Node* y) {
+    find_root(y)->size += find_root(x)->size;
+    find_root(x)->root = find_root(y);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+    int m, n;
+    cin >> n >> m;
+
+    priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>> less_dist;
+    Node** group = new Node*[n+1];
+    int query[m];
+    int maxQuery = 0;
+
+    for(int t = 1; t <= n; t++)
+    {
+        group[t] = new Node{nullptr, 1};
+        group[t]->root = group[t];
+    }
+
+    for(int t = 0; t < n-1; t++)
+    {
+        int u, v, w;
+        cin >> u >> v >> w;
+        less_dist.push(make_pair(w, make_pair(u, v)));
+    }
+
+    for(int t = 0; t < m; t++)
+    {
+        cin >> query[t];
+        maxQuery = query[t] > maxQuery ? query[t] : maxQuery;
+    }
+
+    auto* ans_table = new long long[maxQuery+1]{};
+
+    while(!less_dist.empty())
+    {
+        pair<int, pair<int, int>> cur_edge = less_dist.top();
+        less_dist.pop();
+        if(cur_edge.first > maxQuery)
+            break;
+        if(find_root(group[cur_edge.second.first]) == find_root(group[cur_edge.second.second]))
+            continue;
+        else {
+            ans_table[cur_edge.first] += find_root(group[cur_edge.second.first])->size * find_root(group[cur_edge.second.second])->size;
+            union_set(group[cur_edge.second.first], group[cur_edge.second.second]);
+        }
+    }
+
+    for(int i = 1; i <= maxQuery; i++)
+    {
+        ans_table[i] += ans_table[i-1];
+    }
+    for(int i = 0; i < m; i++)
+    {
+        cout << ans_table[query[i]] << ' ';
+    }
+    return 0;
+}
