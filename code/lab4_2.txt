@@ -1,0 +1,105 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+class Node
+{
+public:
+    explicit Node(int i_value)
+    {
+        this->deep = 0;
+        this->value = i_value;
+        this->sum = i_value;
+        this->beauty = 0;
+        this->parent = nullptr;
+        this->visited = false;
+    }
+
+    void add_child(Node* child_node)
+    {
+        this->child_list.push_back(child_node);
+    }
+
+
+public:
+    int deep;
+    int value;
+    long long sum;
+    long long beauty;
+    vector<Node*> child_list;
+    Node* parent;
+    bool visited;
+};
+
+Node* chosen_root = nullptr;
+
+void DFS(Node* root)
+{
+    root->visited = true;
+    vector<Node*>* child_list = &(root->child_list);
+    if(child_list->size() == 1 && root != chosen_root)
+    {
+        return;
+    }
+    for(auto cur_child : *child_list)
+    {
+        if(cur_child->visited)
+            continue;
+        cur_child->deep = root->deep + 1;
+        cur_child->parent = root;
+        DFS(cur_child);
+        root->sum += cur_child->sum;
+    }
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    Node* Node_list[n];
+    queue<Node*> pending_node;
+    long long total_sum = 0;
+    for(int i = 0; i < n; i++)
+    {
+        int cur_value;
+        cin >> cur_value;
+        Node* new_node = new Node(cur_value);
+        Node_list[i] = new_node;
+        total_sum += cur_value;
+    }
+    for(int i = 0;i < n-1; i++)
+    {
+        int node_index_1, node_index_2;
+        cin >> node_index_1 >> node_index_2;
+        Node* node_1 = Node_list[node_index_1 - 1];
+        Node* node_2 = Node_list[node_index_2 - 1];
+        node_1->add_child(node_2);
+        node_2->add_child(node_1);
+    }
+    chosen_root = Node_list[2];
+    DFS(chosen_root);
+    for(int i = 0; i < n; i++)
+    {
+        chosen_root->beauty += Node_list[i]->deep * Node_list[i]->value;
+        Node_list[i]->visited = false;
+    }
+    pending_node.push(chosen_root);
+    long long ans = 0;
+    while(!pending_node.empty())
+    {
+        Node* cur_node = pending_node.front();
+        cur_node->visited = true;
+        if(cur_node->parent != nullptr)
+            cur_node->beauty = cur_node->parent->beauty +chosen_root->sum - 2 * cur_node->sum;
+        if(cur_node->beauty > ans)
+            ans = cur_node->beauty;
+        for(auto & it : cur_node->child_list)
+        {
+            if(!it->visited)
+                pending_node.push(it);
+        }
+        pending_node.pop();
+    }
+    cout << ans;
+}

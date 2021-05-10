@@ -1,0 +1,89 @@
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <queue>
+using namespace std;
+struct node
+{
+    node(char _ch, long long _num)
+    {
+        ch = _ch;
+        num = _num;
+        child_left = nullptr;
+        child_right = nullptr;
+        rank = 0;
+    }
+    node(const node& a)
+    {
+        rank = a.rank;
+        ch = a.ch;
+        child_right = a.child_right;
+        child_left = a.child_left;
+        num = a.num;
+    }
+    bool operator< (const node& a) const
+    {
+        return num > a.num;
+    }
+    char ch;
+    long long num;
+    int rank;
+    node *child_left;
+    node *child_right;
+};
+int ch_rank[26];
+void DFS(node* root)
+{
+    if(root->ch != '0')
+        ch_rank[root->ch - 97] = root->rank;
+    if(root->child_left != nullptr)
+    {
+        root->child_left->rank = root->rank + 1;
+        DFS(root->child_left);
+    }
+    if(root->child_right != nullptr)
+    {
+        root->child_right->rank = root->rank + 1;
+        DFS(root->child_right);
+    }
+    //delete root;
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    for(int i = 0; i < n; i++)
+    {
+        string str_array;
+        long long count_array[26] = {0};
+        priority_queue<node> less_count;
+        cin >> str_array;
+        for (char j : str_array) {
+            count_array[j - 97]++;
+        }
+        for (int j = 0; j < 26; j++) {
+            if (count_array[j] != 0) {
+                node *new_node = new node(char(j + 97), count_array[j]);
+                less_count.push(*new_node);
+            }
+        }
+        while (less_count.size() != 1) {
+            node *cur_top_1 = new node(less_count.top());
+            less_count.pop();
+            node *cur_top_2 = new node(less_count.top());
+            less_count.pop();
+            node *generate_node = new node('0', cur_top_1->num + cur_top_2->num);
+            generate_node->child_left = cur_top_1;
+            generate_node->child_right = cur_top_2;
+            less_count.push(*generate_node);
+        }
+        node root = less_count.top();
+        DFS(&root);
+        long long ans = 0;
+        for (char j : str_array) {
+            ans += ch_rank[j - 97];
+        }
+        cout << ans << endl;
+    }
+}

@@ -1,0 +1,39 @@
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+using namespace std;
+
+long long NumberOfL(pair<long long , int> num)
+{
+    long long ans = 0;
+    if(num.first == pow(2, num.second) - 1)
+        ans = (long long)pow(2, num.second - 1);
+    else if(num.first == pow(2, num.second))
+        ans = (long long)pow(2, num.second - 1) + 1;
+    else
+    {
+        long long sub_start, sub_end;
+        sub_start = (long long)pow(2, num.second) - (num.first - (long long)pow(2, num.second));
+        sub_end = (long long)pow(2, num.second) - 1;
+        pair<long long , int> sub_pair_1, sub_pair_2;
+        sub_pair_1 = make_pair(sub_start - 1, log(sub_start) / log(2));
+        sub_pair_2 = make_pair(sub_end, num.second);
+        ans = (long long)pow(2, num.second - 1) + 1 + ((sub_end - sub_start + 1) - (NumberOfL(sub_pair_2) - NumberOfL(sub_pair_1)));
+    }
+    return ans;
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    for(int t = 0; t < n; t++)
+    {
+        pair<long long, int> start, end;
+        cin >> start.first >> end.first;
+        start.first--;
+        start.second = log(start.first + 1) / log(2);
+        end.second = log(end.first + 1) / log(2);
+        cout << NumberOfL(end) - NumberOfL(start) << endl;
+    }
+}

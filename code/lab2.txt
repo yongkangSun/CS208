@@ -1,0 +1,155 @@
+#include <iostream>
+using namespace std;
+
+void merge_sort(int *A, int n);
+int *Merge(const int *L, int nl, const int *R, int nr);
+
+int main()
+{
+    int T;
+    cin >> T;
+    for(int t = 0; t < T; t++)
+    {
+        int n;
+        cin >> n;
+
+        int array[n];
+        int final_ans = 0;
+
+        for(int i = 0; i < n; i++)
+            cin >> array[i];
+
+        if(n == 1) {
+            cout << array[0] << endl;
+            continue;
+        }
+
+        merge_sort(array, n);
+
+        if(array[0] % array[1] != 0)
+        {
+            final_ans += array[0] + array[1];
+            for(int i = 2; i < n; i++)
+            {
+                if(array[0] % array[i] != 0 && array[1] % array[i] != 0)
+                {
+                    final_ans += array[i];
+                    break;
+                }
+            }
+        }
+        else
+        {
+            if(array[0] == 2 * array[1])
+            {
+                int ans0 = array[0], ans1 = array[1];
+                //确定a0， 向后寻找
+                for(int i = 2; i < n; i++)
+                {
+                    if(array[0] % array[i] == 0)
+                        continue;
+                    else {
+                        ans0 += array[i];
+                        for (int j = i + 1; j < n; j++) {
+                            if (array[0] % array[j] != 0 && array[i] % array[j] != 0) {
+                                ans0 += array[j];
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                //确定a1， 向后寻找
+                for(int i = 2; i < n; i++)
+                {
+                    if(array[1] % array[i] == 0)
+                        continue;
+                    else {
+                        ans1 += array[i];
+                        for (int j = i + 1; j < n; j++) {
+                            if (array[1] % array[j] != 0 && array[i] % array[j] != 0) {
+                                ans1 += array[j];
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                if(ans0 > ans1)
+                    final_ans = ans0;
+                else
+                    final_ans = ans1;
+            }
+            else
+            {
+                final_ans += array[0];
+                for(int i = 2; i < n; i++)
+                {
+                    if(array[0] % array[i] == 0)
+                        continue;
+                    else {
+                        final_ans += array[i];
+                        for (int j = i + 1; j < n; j++) {
+                            if (array[0] % array[j] != 0 && array[i] % array[j] != 0) {
+                                final_ans += array[j];
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        cout << final_ans << endl;
+    }
+}
+
+void merge_sort(int *A, int n)
+{
+    int i;
+    if(n > 1)
+    {
+        int p = n/2;
+        int *B = new int[p];
+        int *C = new int[n-p];
+        for(i = 0; i < p; i++)
+        {
+            B[i] = A[i];
+        }
+        for(i = 0; i < n-p; i++)
+        {
+            C[i] = A[i+p];
+        }
+        merge_sort(B, p);
+        merge_sort(C, n-p);
+        int *aft = Merge(B, p, C, n-p);
+        for(i = 0; i < n; i++)
+        {
+            A[i] = aft[i];
+        }
+        delete []aft;
+        delete []B;
+        delete []C;
+    }
+}
+
+int *Merge(const int *L, int nl, const int *R, int nr)
+{
+    int n = nl + nr;
+    int *A = new int[n];
+    int i = 0, j = 0;
+    for(int k = 0; k < n; k++)
+    {
+        if(i < nl && (j >= nr || L[i] >= R[j]))
+        {
+            A[k] = L[i];
+            i++;
+        }
+        else
+        {
+            A[k] = R[j];
+            j++;
+        }
+    }
+    return A;
+}

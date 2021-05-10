@@ -1,0 +1,149 @@
+#include <iostream>
+
+using namespace std;
+
+int ans = 0;
+int status[26];
+int valueArray[26][26];
+
+class Node
+{
+public:
+    explicit Node()
+    {
+        this->value = 0;
+        this->lowercase = nullptr;
+        this->uppercase = nullptr;
+        this->str_num = -1;
+    }
+
+    Node(const Node& node)
+    {
+        this->value = node.value;
+        this->str_num = node.str_num;
+        this->lowercase = node.lowercase;
+        this->uppercase = node.uppercase;
+    }
+
+    void construct_tree(int count)
+    {
+        //创造新的lowercase对象
+        Node* new_lowercase = new Node(*this);
+        new_lowercase->str_num++;
+        new_lowercase->uppercase = nullptr;
+        new_lowercase->lowercase = nullptr;
+        this->lowercase = new_lowercase;
+        //创造新的uppercase对象
+        int update_value_uppercase = 0;
+        for(int i = 0; i < count; i++)
+        {
+            if(status[i] == 0)
+                update_value_uppercase += valueArray[this->str_num+1][i];
+            else if(status[i] == 1)
+                update_value_uppercase -= valueArray[this->str_num+1][i];
+        }
+        if(update_value_uppercase >= 0)
+        {
+            Node* new_uppercase = new Node(*this);
+            new_uppercase->str_num++;
+            new_uppercase->uppercase = nullptr;
+            new_uppercase->lowercase = nullptr;
+            this->uppercase = new_uppercase;
+            new_uppercase->value += update_value_uppercase;
+        }
+        else
+            this->uppercase = nullptr;
+    }
+
+    void delete_tree()
+    {
+        if(this->uppercase != nullptr)
+            this->uppercase->delete_tree();
+        if(this->lowercase != nullptr)
+            this->lowercase->delete_tree();
+        delete this;
+    }
+
+    int value;
+    int str_num;
+    Node* uppercase;
+    Node* lowercase;
+};
+
+bool isConsonant(char ch)
+{
+    if(ch == 'a' || ch == 'i' || ch == 'u' || ch == 'e' || ch == 'o')
+        return false;
+    else
+        return true;
+}
+
+void DFS(Node* cur_node, int& count)
+{
+    if(cur_node->lowercase == nullptr && cur_node->str_num < count-1)
+        cur_node->construct_tree(count);
+
+    if(cur_node->value > ans)
+    {
+        ans = cur_node->value;
+    }
+
+    if(cur_node->uppercase != nullptr)
+    {
+        if(ans == 0 && cur_node->uppercase->value > 0)
+            cur_node->lowercase = nullptr;
+        status[cur_node->uppercase->str_num] = 1;
+        DFS(cur_node->uppercase, count);
+        status[cur_node->uppercase->str_num] = 0;
+    }
+    if(cur_node->lowercase != nullptr)
+        DFS(cur_node->lowercase, count);
+}
+
+void clear(int count)
+{
+    for(int i = 0; i < count; i++) {
+        status[i] = 0;
+        for (int j = 0; j < count; j++) {
+            valueArray[i][j] = 0;
+        }
+    }
+}
+
+int main()
+{
+    int T;
+    cin >> T;
+
+    for(int t = 0; t < T; t++)
+    {
+        ans = 0;
+        string str;
+        cin >> str;
+        int index[26];
+        for(int & i : index)
+            i = -1;
+        int count = 0;
+        for(int i = 0; i < str.length() - 1; i++) {
+            if (isConsonant(str[i]) && isConsonant(str[i + 1]) && str[i] != str[i + 1]) {
+                int str1_num = (int) str[i] - 97, str2_num = (int) str[i + 1] - 97;
+                if (index[str1_num] == -1) {
+                    index[str1_num] = count;
+                    count++;
+                }
+                if (index[str2_num] == -1) {
+                    index[str2_num] = count;
+                    count++;
+                }
+                valueArray[index[str1_num]][index[str2_num]]++;
+                valueArray[index[str2_num]][index[str1_num]]++;
+            }
+        }
+
+        Node* root = new Node();
+        DFS(root, count);
+        cout << ans << endl;
+        root->delete_tree();
+        clear(count);
+    }
+}

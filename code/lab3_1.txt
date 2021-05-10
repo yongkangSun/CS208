@@ -1,0 +1,205 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+using namespace std;
+
+double s, n, m;
+int ans = 0;
+
+class cup_case
+{
+public:
+    cup_case()
+    {
+        cup1 = 0;
+        cup2 = 0;
+        cup3 = 0;
+        count = 0;
+    };
+
+    cup_case(double a, double b, double c)
+    {
+        cup1 = a;
+        cup2 = b;
+        cup3 = c;
+        count = 0;
+    }
+
+    cup_case(const cup_case& cup_case_temp)
+    {
+        this->count = cup_case_temp.count;
+        this->cup1 = cup_case_temp.cup1;
+        this->cup2 = cup_case_temp.cup2;
+        this->cup3 = cup_case_temp.cup3;
+    }
+
+    void init_cup_case(double a, double b, double c)
+    {
+        cup1 = a;
+        cup2 = b;
+        cup3 = c;
+    }
+
+    void makeNextCase(vector<cup_case> exist_case)
+    {
+        if(cup1 != 0)
+        {
+            if(cup2 < n)
+            {
+                cup_case new_case_12;
+                if(cup1 > n - cup2)
+                    new_case_12.init_cup_case(cup1- (n - cup2), n, cup3);
+                else
+                    new_case_12.init_cup_case(0, cup2 + cup1, cup3);
+                if(!new_case_12.checkExist(exist_case))
+                    child.push_back(new_case_12);
+            }
+            if(cup3 < m)
+            {
+                cup_case new_case_13;
+                if(cup1 > m - cup3)
+                    new_case_13.init_cup_case(cup1 - (m - cup3), cup2, m);
+                else
+                    new_case_13.init_cup_case(0, cup2, cup3 + cup1);
+                if(!new_case_13.checkExist(exist_case))
+                    child.push_back(new_case_13);
+            }
+        }
+        if(cup2 != 0)
+        {
+            if(cup1 < s)
+            {
+                cup_case new_case_21;
+                if(cup2 > s - cup1)
+                    new_case_21.init_cup_case(s, cup2 - (s - cup1), cup3);
+                else
+                    new_case_21.init_cup_case(cup1 + cup2, 0, cup3);
+                if(! new_case_21.checkExist(exist_case))
+                    child.push_back(new_case_21);
+            }
+            if(cup3 < m)
+            {
+                cup_case new_case_23;
+                if(cup2 > m - cup3)
+                    new_case_23.init_cup_case(cup1, cup2 - (m - cup3), m);
+                else
+                    new_case_23.init_cup_case(cup1, 0, cup3 + cup2);
+                if(!new_case_23.checkExist(exist_case))
+                    child.push_back(new_case_23);
+            }
+        }
+        if(cup3 != 0)
+        {
+            if(cup1 < s)
+            {
+                cup_case new_case_31;
+                if(cup3 > s - cup1)
+                    new_case_31.init_cup_case(s, cup2, cup3 - (s - cup1));
+                else
+                    new_case_31.init_cup_case(cup1 + cup3, cup2, 0);
+                if(!new_case_31.checkExist(exist_case))
+                    child.push_back(new_case_31);
+            }
+            if(cup2 < n)
+            {
+                cup_case new_case_32;
+                if(cup3 > n - cup2)
+                    new_case_32.init_cup_case(cup1, n, cup3 - (n - cup2));
+                else
+                    new_case_32.init_cup_case(cup1, cup2 + cup3, 0);
+                if(!new_case_32.checkExist(exist_case))
+                    child.push_back(new_case_32);
+            }
+        }
+    }
+
+    bool checkExist(vector<cup_case>& exist_case)
+    {
+        cup_case cur_case = *this;
+        for(auto & i : exist_case)
+        {
+            bool flag1 = i.cup1 == cur_case.cup1;
+            bool flag2 = i.cup2 == cur_case.cup2;
+            bool flag3 = i.cup3 == cur_case.cup3;
+            if(flag1 && flag2 && flag3)
+                return true;
+            else
+                continue;
+        }
+        return false;
+    }
+
+    bool operator==(const cup_case& goal_case) const
+    {
+        bool flag1 = this->cup1 == goal_case.cup1;
+        bool flag2 = this->cup2 == goal_case.cup2;
+        bool flag3 = this->cup3 == goal_case.cup3;
+        if(flag1 && flag2 && flag3)
+            return true;
+        else
+            return false;
+    }
+
+    double cup1;
+    double cup2;
+    double cup3;
+    vector<cup_case> child;
+    int count;
+};
+
+bool BFS(cup_case start, cup_case& goal)
+{
+    queue<cup_case> pending_case;
+    vector<cup_case> exist_case;
+    start.count = 0;
+    pending_case.push(start);
+    while(!pending_case.empty())
+    {
+        cup_case cur_case = pending_case.front();
+        cur_case.makeNextCase(exist_case);
+        for(int i = 0; i < cur_case.child.size(); i++)
+        {
+            cup_case cur_child = cur_case.child.at(i);
+            if(cur_child == goal)
+            {
+                ans = cur_case.count + 1;
+                return true;
+            }
+            else
+            {
+                cur_child.count = cur_case.count + 1;
+                pending_case.push(cur_child);
+            }
+        }
+        exist_case.push_back(cur_case);
+        pending_case.pop();
+    }
+    return false;
+}
+
+int main()
+{
+    int T;
+    cin >> T;
+    for(int t = 0; t < T; t++)
+    {
+        cin >> s >> n >> m;
+        cup_case goal = cup_case();
+        if(n > m)
+            goal.init_cup_case(s/2, s/2, 0);
+        else if(n < m)
+            goal.init_cup_case(s/2, 0, s/2);
+        else
+        {
+            cout << 1 << endl;
+            continue;
+        }
+        cup_case start = cup_case(s, 0, 0);
+        ans = 0;
+        bool flag = BFS(start, goal);
+        if(flag)
+            cout << ans << endl;
+        else
+            cout << "impossible" << endl;
+    }
+}

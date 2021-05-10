@@ -1,0 +1,103 @@
+#include <iostream>
+#include <queue>
+#include <string>
+#include <map>
+
+using namespace std;
+
+int main()
+{
+    int n;
+    cin >> n;
+
+    map<string, int> man_map;
+    map<string, int> woman_map;
+    string man_array[n];
+    string woman_array[n];
+    int preference_man[n][n];
+    int preference_woman[n][n];
+    queue<int> unmatched_man;
+    int man_status[n];
+    int woman_status[n];
+    int man_tried_list[n];
+
+    for(int i = 0; i < n; i++)
+    {
+        string boy_name;
+        cin >> boy_name;
+        man_map[boy_name] = i;
+        unmatched_man.push(i);
+        man_array[i] = boy_name;
+        man_status[i] = -1;
+        man_tried_list[i] = 0;
+    }
+
+    for(int i = 0; i < n; i++)
+    {
+        string girl_name;
+        cin >> girl_name;
+        woman_map[girl_name] = i;
+        woman_array[i] = girl_name;
+        woman_status[i] = -1;
+    }
+
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < n; j++)
+        {
+            string girl_name;
+            cin >> girl_name;
+            preference_man[i][j] = woman_map.at(girl_name);
+        }
+    }
+
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < n; j++)
+        {
+            string boy_name;
+            cin >> boy_name;
+            preference_woman[i][man_map.at(boy_name)] = j;
+        }
+    }
+
+    while (!unmatched_man.empty())
+    {
+        int cur_man = unmatched_man.front();
+        for(int i = man_tried_list[cur_man]; i < n; i++)
+        {
+            int cur_woman = preference_man[cur_man][i];
+            if(woman_status[cur_woman] == -1)
+            {
+                man_status[cur_man] = cur_woman;
+                woman_status[cur_woman] = cur_man;
+                unmatched_man.pop();
+                man_tried_list[cur_man] = i+1;
+                break;
+            }
+            else
+            {
+                int woman_boyfriend = woman_status[cur_woman];
+                int rank_woman_boyfriend = preference_woman[cur_woman][woman_boyfriend];
+                int rank_cur_man = preference_woman[cur_woman][cur_man];
+                if(rank_woman_boyfriend > rank_cur_man)
+                {
+                    man_status[cur_man] = cur_woman;
+                    man_status[woman_boyfriend] = -1;
+                    woman_status[cur_woman] = cur_man;
+                    unmatched_man.pop();
+                    unmatched_man.push(woman_boyfriend);
+                    man_tried_list[cur_man] = i+1;
+                    break;
+                }
+                else
+                    continue;
+            }
+        }
+    }
+
+    for(int i = 0; i < n; i++)
+    {
+        cout << man_array[i] << " " << woman_array[man_status[i]] << endl;
+    }
+}

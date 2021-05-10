@@ -1,0 +1,74 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+int const MAX_SIZE = 10010;
+vector<pair<int, int>> graph[MAX_SIZE];
+bool is_visited[MAX_SIZE];
+long long dist[MAX_SIZE];
+pair<int ,int> traffic[MAX_SIZE];
+priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> less_dist;
+
+void relax_edge(int root)
+{
+    is_visited[root] = true;
+    for(int i = 0; i < graph[root].size(); i++)
+    {
+        int child = graph[root][i].first;
+        int dist_root2child = graph[root][i].second;
+        long long dist_new = dist[root] + dist_root2child;
+        if(dist_new % (traffic[child].first + traffic[child].second) < traffic[child].first)
+            dist_new += traffic[child].first - dist_new % (traffic[child].first + traffic[child].second);
+        if(dist[child] == -1 || dist[child] > dist_new)
+        {
+            dist[child] = dist_new;
+            less_dist.push(make_pair(dist_new, child));
+        }
+    }
+}
+
+int main()
+{
+    int n, m;
+    cin >> n >> m;
+    for(int i = 0; i < m; i++)
+    {
+        int u,v,w;
+        cin >> u >> v >> w;
+        graph[u].emplace_back(make_pair(v, w));
+    }
+    for(int i = 1; i <= n; i++)
+    {
+        cin >> traffic[i].first >> traffic[i].second;
+        dist[i] = -1;
+        is_visited[i] = false;
+    }
+
+    //开始Dijkstra
+    dist[1] = 0;
+    relax_edge(1);
+    //less_dist.push(make_pair(0,1));
+    while(!less_dist.empty())
+    {
+        int root;
+        bool flag = false;
+        while(true)
+        {
+            if(less_dist.empty()) {
+                flag = true;
+                break;
+            }
+            root = less_dist.top().second;
+            if(is_visited[root])
+                less_dist.pop();
+            else
+                break;
+        }
+        if(flag)
+            break;
+        relax_edge(root);
+        less_dist.pop();
+    }
+    cout << dist[n];
+}

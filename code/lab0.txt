@@ -1,0 +1,149 @@
+#include <iostream>
+using namespace std;
+
+class Node
+{
+public:
+    explicit Node(long long num)
+    {
+        this->num = num;
+        this->prev = nullptr;
+        this->next = nullptr;
+    }
+
+    ~Node()
+    {
+        this->prev = nullptr;
+        this->next = nullptr;
+    }
+
+    Node(const Node& node)
+    {
+        this->num = node.num;
+        this->next = node.next;
+        this->prev = node.prev;
+    }
+
+    void setNext(Node* new_next)
+    {
+        this->next = new_next;
+    }
+
+    void setPrev(Node* new_prev)
+    {
+        this->prev = new_prev;
+    }
+
+    Node* getNext()
+    {
+        return next;
+    }
+
+    Node* getPrev()
+    {
+        return prev;
+    }
+
+    long long getNum() const
+    {
+        return num;
+    }
+
+private:
+    long long num;
+    Node *next;
+    Node *prev;
+};
+
+class Queue
+{
+public:
+    Queue()
+    {
+        count = 0;
+        head = new Node(-1);
+        tail = new Node(-1);
+        tail->setNext(head);
+        head->setPrev(tail);
+    }
+
+    ~Queue()
+    {
+        Node* prev = tail;
+        Node* now = tail->getNext();
+        while(now != nullptr)
+        {
+            delete prev;
+            prev = now;
+            now = now->getNext();
+        }
+        delete prev;
+    }
+
+    void enQueue(long long num)
+    {
+        count++;
+        Node* prev = head->getPrev();
+        Node* new_node = new Node(num);
+        prev->setNext(new_node);
+        new_node->setNext(head);
+        head->setPrev(new_node);
+        new_node->setPrev(prev);
+    }
+
+    long long dequeue()
+    {
+        count--;
+        Node* now = tail->getNext();
+        tail->setNext(now->getNext());
+        now->getNext()->setPrev(tail);
+        long long ans = now->getNum();
+        delete now;
+        return ans;
+    }
+
+private:
+    int count;
+    Node* head;
+    Node* tail;
+};
+
+int main()
+{
+    int T, n, L;
+    cin >> T;
+    for(int t = 0; t < T; t++)
+    {
+        cin >> n;
+        cin >> L;
+
+        auto* last_L_nums = new Queue();
+        last_L_nums->enQueue(1);
+        long long sum_last_L = 1;
+        long long ans_i = 0;
+
+        for(int i = 1; i <= n; i++)
+        {
+            ans_i = sum_last_L % 998244353;
+            if(i < L)
+            {
+                sum_last_L = (ans_i + sum_last_L) % 998244353;
+                last_L_nums->enQueue(ans_i);
+            }
+            else
+            {
+                long long first_of_L = last_L_nums->dequeue();
+                last_L_nums->enQueue(ans_i);
+                sum_last_L = (sum_last_L + ans_i) % 998244353;
+                if(sum_last_L < first_of_L)
+                    sum_last_L = (sum_last_L + 998244353 - first_of_L) % 998244353;
+                else
+                    sum_last_L -= first_of_L;
+            }
+        }
+        delete last_L_nums;
+        cout << (ans_i % 998244353) << endl;
+    }
+}
+
+

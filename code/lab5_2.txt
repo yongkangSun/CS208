@@ -1,0 +1,102 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+const int MAX_N = 200001;
+
+class Path
+{
+public:
+    int dest_index;
+    long long cost_value;
+
+    Path() = default;
+    Path(int ind, long long val)
+    {
+        this->dest_index = ind;
+        this->cost_value = val;
+    };
+    bool operator<(Path path) const
+    {
+        return this->cost_value < path.cost_value;
+    }
+};
+
+long long value[MAX_N];
+long long changed_hp[MAX_N];
+long long required_hp[MAX_N];
+vector<Path> tree[MAX_N];
+
+void DFS(int cur_node, int parent)
+{
+    changed_hp[cur_node] = value[cur_node];
+    required_hp[cur_node] = 0;
+    vector<pair<long long, Path>> child_type_1, child_type_2;
+    for(int i = 0; i < tree[cur_node].size(); i++)
+    {
+        Path path_to_child = tree[cur_node][i];
+        if(path_to_child.dest_index == parent)
+            continue;
+        DFS(path_to_child.dest_index, cur_node);
+        changed_hp[path_to_child.dest_index] -= 2 * path_to_child.cost_value;
+        required_hp[path_to_child.dest_index] += path_to_child.cost_value;
+        changed_hp[cur_node] += changed_hp[path_to_child.dest_index];
+        if(changed_hp[path_to_child.dest_index] >= 0)
+            child_type_1.emplace_back(required_hp[path_to_child.dest_index], path_to_child);
+        else
+            child_type_2.emplace_back(required_hp[path_to_child.dest_index] + changed_hp[path_to_child.dest_index], path_to_child);
+    }
+    sort(child_type_1.begin(), child_type_1.end());
+    sort(child_type_2.begin(), child_type_2.end());
+    reverse(child_type_2.begin(), child_type_2.end());
+    long long cur_hp = value[cur_node];
+    for(auto & i : child_type_1)
+    {
+        Path cur_path = i.second;
+        if(cur_hp < required_hp[cur_path.dest_index])
+        {
+            required_hp[cur_node] += required_hp[cur_path.dest_index] - cur_hp;
+            cur_hp = required_hp[cur_path.dest_index];
+        }
+        cur_hp += changed_hp[cur_path.dest_index];
+        if(cur_hp < 0)
+        {
+            required_hp[cur_node] += -cur_hp;
+            cur_hp = 0;
+        }
+    }
+    for(auto & i : child_type_2)
+    {
+        Path cur_path = i.second;
+        if(cur_hp < required_hp[cur_path.dest_index])
+        {
+            required_hp[cur_node] += required_hp[cur_path.dest_index] - cur_hp;
+            cur_hp = required_hp[cur_path.dest_index];
+        }
+        cur_hp += changed_hp[cur_path.dest_index];
+        if(cur_hp < 0)
+        {
+            required_hp[cur_node] += -cur_hp;
+            cur_hp = 0;
+        }
+    }
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    for(int i = 1; i <= n; i++)
+        cin >> value[i];
+    int node1, node2, cost;
+    for(int i = 1; i < n; i++)
+    {
+        cin >> node1 >> node2 >> cost;
+        tree[node1].emplace_back(node2, cost);
+        tree[node2].emplace_back(node1, cost);
+    }
+    DFS(1, -1);
+    cout << required_hp[1];
+}

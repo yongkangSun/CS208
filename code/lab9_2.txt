@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    pair<int, int> num_array[n];
+    int ans[n];
+    int total_cnt[n];
+    for (int i = 0; i < n; i++) {
+        cin >> num_array[i].first >> num_array[i].second;
+        ans[i] = i;
+        total_cnt[i] = 0;
+    }
+    for (int i = 0; i < n; i++) {
+        int cnt = 0;
+        for (int j = 0; j < i; j++) {
+            if (num_array[i].first < num_array[j].first) {
+                cnt++;
+            }
+        }
+        ans[i] -= cnt;
+        total_cnt[ans[i]]++;
+    }
+    for (int i = 0; i < n; i++) {
+        if (i != n - 1)
+            cout << total_cnt[i] << endl;
+        else
+            cout << total_cnt[i];
+    }
+}

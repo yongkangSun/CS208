@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <iostream>
+
+using namespace std;
+
+void merge_sort(int *A, int n);
+
+int *Merge(int *L, int nl, int *R, int nr);
+
+static long long count = 0;
+
+int main() {
+    int n;
+    int i;
+    scanf("%d", &n);
+    int *num = new int[n];
+    for (i = 0; i < n; i++) {
+        scanf("%d", &num[i]);
+    }
+    merge_sort(num, n);
+    cout << count << endl;
+    count = 0;
+    delete[]num;
+    return 0;
+}
+
+void merge_sort(int *A, int n) {
+    int i;
+    if (n > 1) {
+        int p = n / 2;
+        int *B = new int[p];
+        int *C = new int[n - p];
+        for (i = 0; i < p; i++) {
+            B[i] = A[i];
+        }
+        for (i = 0; i < n - p; i++) {
+            C[i] = A[i + p];
+        }
+        merge_sort(B, p);
+        merge_sort(C, n - p);
+        int *aft = Merge(B, p, C, n - p);
+        for (i = 0; i < n; i++) {
+            A[i] = aft[i];
+        }
+        delete[]aft;
+        delete[]B;
+        delete[]C;
+    }
+}
+
+int *Merge(int *L, int nl, int *R, int nr) {
+    int n = nl + nr;
+    int *A = new int[n];
+    int i = 0, j = 0;
+    for (int k = 0; k < n; k++) {
+        if (i < nl && (j >= nr || L[i] <= R[j])) {
+            A[k] = L[i];
+            i++;
+        } else {
+            A[k] = R[j];
+            j++;
+            count += nl - i;
+        }
+    }
+    return A;
+}
