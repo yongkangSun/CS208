@@ -1,0 +1,32 @@
+#include <iostream>
+using namespace std;
+int main()
+{
+    int n, m;
+    cin >> n >> m;
+    int beauty[n+1];
+    int cost[n+1];
+    for(int i = 1; i <= n; i++)
+        cin >> beauty[i];
+    for(int i = 1; i <= n; i++)
+        cin >> cost[i];
+    int OPT[n+1][m+1];
+    for(int i = 0; i <= m; i++)
+        OPT[0][i] = 0;
+    for(int i = 0; i <= n; i++)
+        OPT[i][0] = 0;
+    for(int i = 1; i <= n; i++)
+    {
+        for(int w = 1; w <= m; w++)
+        {
+            if(cost[i] > w)
+                OPT[i][w] = OPT[i-1][w];
+            else {
+                int num1 = OPT[i-1][w];
+                int num2 = OPT[i-1][w-cost[i]] + beauty[i];
+                OPT[i][w] = (num1 > num2) ? num1 : num2;
+            }
+        }
+    }
+    cout << OPT[n][m];
+}

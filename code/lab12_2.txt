@@ -1,0 +1,34 @@
+#include <iostream>
+using namespace std;
+int main()
+{
+    int n;
+    cin >> n;
+    int weight[n+1];
+    for(int i = 1; i <= n; i++)
+        cin >> weight[i];
+    int OPT[n+1][n+1];
+    for(int i = 1; i <= n; i++)
+        OPT[i][i] = 0;
+    for(int d = 1; d < n; d++)
+    {
+        for(int i = 1; i < n; i++)
+        {
+            int j = i + d;
+            if(j > n)
+                continue;
+            int sum = 0;
+            int min = 2147483647;
+            for(int t = i; t <= j; t++)
+                sum += weight[t];
+            for(int k = i; k < j; k++)
+            {
+                int num = OPT[i][k] + OPT[k+1][j] + sum;
+                if(num < min)
+                    min = num;
+            }
+            OPT[i][j] = min;
+        }
+    }
+    cout << OPT[1][n];
+}
